@@ -1368,6 +1368,7 @@ public class OStorageRemote extends OStorageAbstract implements OStorageProxy, O
           subscribeStorageConfiguration(session);
           subscribeDistributedConfiguration(session);
           subscribeSchema(session);
+          subscribeIndexManager(session);
 
         }
       } finally {
@@ -1386,6 +1387,10 @@ public class OStorageRemote extends OStorageAbstract implements OStorageProxy, O
 
   private void subscribeSchema(OStorageRemoteSession nodeSession) {
     pushThread.subscribe(new OSubscribeSchemaRequest(), nodeSession);
+  }
+
+  private void subscribeIndexManager(OStorageRemoteSession nodeSession) {
+    pushThread.subscribe(new OSubscribeIndexManagerRequest(), nodeSession);
   }
 
   protected void openRemoteDatabase(String currentURL) {
@@ -1861,7 +1866,8 @@ public class OStorageRemote extends OStorageAbstract implements OStorageProxy, O
       return new OPushStorageConfigurationRequest();
     case OChannelBinaryProtocol.REQUEST_PUSH_SCHEMA:
       return new OPushSchemaRequest();
-
+    case OChannelBinaryProtocol.REQUEST_PUSH_INDEX_MANAGER:
+      return new OPushIndexManagerRequest();
     }
     return null;
   }
@@ -1886,6 +1892,14 @@ public class OStorageRemote extends OStorageAbstract implements OStorageProxy, O
     ODocument schema = request.getSchema();
     ORecordInternal.setIdentity(schema, new ORecordId(getConfiguration().getSchemaRecordId()));
     ODatabaseDocumentRemote.updateSchema(this, schema);
+    return null;
+  }
+
+  @Override
+  public OBinaryPushResponse executeUpdateIndexManager(OPushIndexManagerRequest request) {
+    ODocument indexManager = request.getIndexManager();
+    ORecordInternal.setIdentity(indexManager, new ORecordId(getConfiguration().getIndexMgrRecordId()));
+    ODatabaseDocumentRemote.updateIndexManager(this, indexManager);
     return null;
   }
 
